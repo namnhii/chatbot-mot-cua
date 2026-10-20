@@ -11,7 +11,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Tin nhắn không hợp lệ' }, { status: 400 });
     }
 
-    // Set up Server-Sent Events (SSE) or Streaming
     const encoder = new TextEncoder();
     const stream = new TransformStream();
     const writer = stream.writable.getWriter();
@@ -30,7 +29,8 @@ export async function POST(req: Request) {
           sources: result.sources,
           latencyMs: result.latencyMs,
           firstTokenMs: result.firstTokenMs,
-          condensedQuestion: result.condensedQuestion
+          condensedQuestion: result.condensedQuestion,
+          breakdown: result.breakdown
         }) + '\n';
         await writer.write(encoder.encode(finalPayload));
         await writer.close();

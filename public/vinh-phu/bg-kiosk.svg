@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="800" height="800" opacity="0.03">
+  <circle cx="400" cy="400" r="380" fill="none" stroke="#991B1B" stroke-width="3"/>
+  <circle cx="400" cy="400" r="320" fill="none" stroke="#991B1B" stroke-width="2" stroke-dasharray="8,8"/>
+  <circle cx="400" cy="400" r="260" fill="none" stroke="#991B1B" stroke-width="2"/>
+  <circle cx="400" cy="400" r="200" fill="none" stroke="#991B1B" stroke-width="3" stroke-dasharray="12,6"/>
+  <circle cx="400" cy="400" r="140" fill="none" stroke="#991B1B" stroke-width="2"/>
+  <circle cx="400" cy="400" r="70" fill="none" stroke="#991B1B" stroke-width="3"/>
+  <!-- 14-pointed star in center -->
+  <g transform="translate(400, 400)">
+    <circle cx="0" cy="0" r="30" fill="#991B1B"/>
+    <path d="M 0,-60 L 6,-20 L 20,-6 L 60,0 L 20,6 L 6,20 L 0,60 L -6,20 L -20,6 L -60,0 L -20,-6 L -6,-20 Z" fill="#991B1B"/>
+  </g>
+</svg>

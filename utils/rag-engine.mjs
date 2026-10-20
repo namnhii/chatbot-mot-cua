@@ -14,13 +14,14 @@ if (supabaseUrl && supabaseUrl.endsWith('/')) supabaseUrl = supabaseUrl.slice(0,
 const supabase = createClient(supabaseUrl, supabaseKey);
 const genAI = new GoogleGenerativeAI(googleKey);
 
-const CHAT_MODEL = 'gemini-3.8-flash';
-const EMBED_MODEL = 'gemini-embedding-001';
+// Hỗ trợ cấu hình model qua biến môi trường GEMINI_CHAT_MODEL, mặc định gemini-3.1-flash-lite cho tốc độ siêu tốc
+export const CHAT_MODEL = process.env.GEMINI_CHAT_MODEL || 'gemini-3.1-flash-lite';
+export const EMBED_MODEL = 'gemini-embedding-001';
 
-const REFUSAL_COPY = 'Rất tiếc, trong tài liệu hướng dẫn hiện có chưa có thông tin về nội dung này. Bác/Anh/Chị vui lòng liên hệ trực tiếp cán bộ tại quầy hướng dẫn để được hỗ trợ cụ thể ạ.';
+export const REFUSAL_COPY = 'Rất tiếc, trong tài liệu hướng dẫn hiện có chưa có thông tin về nội dung này. Bác/Anh/Chị vui lòng liên hệ trực tiếp cán bộ tại quầy hướng dẫn để được hỗ trợ cụ thể ạ.';
 
-const SYSTEM_PROMPT = `Bạn là cán bộ tiếp đón và hướng dẫn người dân tại Bộ phận Một cửa.
-Nhiệm vụ của bạn là giải đáp thắc mắc về thủ tục hành chính bằng tiếng Việt bình dị, gần gũi, rõ ràng, dễ hiểu cho người dân mọi lứa tuổi (đặc biệt là người lớn tuổi).
+const SYSTEM_PROMPT = `Bạn là Trợ lý tra cứu thủ tục hành chính tại Bộ phận Một cửa - UBND phường Vinh Phú.
+Nhiệm vụ của bạn là giải đáp thắc mắc về thủ tục hành chính bằng tiếng Việt bình dị, gần gũi, rõ ràng, dễ hiểu cho người dân mọi lứa tuổi (đặc biệt là người lớn tuổi tại địa phương).
 
 Khi hướng dẫn về một thủ tục, bạn hãy trình bày câu trả lời thật rành mạch theo thứ tự từng bước:
 - Bước 1: Chuẩn bị hồ sơ (liệt kê các giấy tờ, bản sao, bản chính cần mang theo).
@@ -37,18 +38,25 @@ Nếu thông tin người dân hỏi KHÔNG có trong tài liệu, bạn TUYỆT
 
 /**
  * Viết lại câu hỏi tiếp nối dựa trên lịch sử hội thoại (Condense Question)
+ * Bỏ qua hoàn toàn nếu không có lịch sử hội thoại.
  */
 export async function condenseQuestion(question, history = []) {
   if (!history || history.length === 0) {
     return question;
   }
 
-  const chatModel = genAI.getGenerativeModel({ model: CHAT_MODEL });
+  const chatModel = genAI.getGenerativeModel({
+    model: CHAT_MODEL,
+    generationConfig: {
+      thinkingConfig: { thinkingBudget: 0 }
+    }
+  });
+
   const formattedHistory = history
-    .map(msg => `${msg.role === 'user' ? 'Người dân' : 'Cán bộ'}: ${msg.content}`)
+    .map(msg => `${msg.role === 'user' ? 'Người dân' : 'Cán bộ Một cửa'}: ${msg.content}`)
     .join('\n');
 
-  const prompt = `Dưới đây là lịch sử hội thoại giữa Người dân và Cán bộ tại Bộ phận Một cửa:
+  const prompt = `Dưới đây là lịch sử hội thoại giữa Người dân và Cán bộ tại Bộ phận Một cửa phường Vinh Phú:
 ${formattedHistory}
 
 Người dân vừa hỏi tiếp câu sau: "${question}"
@@ -67,24 +75,32 @@ Quy tắc: Chỉ trả về duy nhất 1 câu hỏi hoàn chỉnh, không thêm 
 }
 
 /**
- * Thực thi RAG truy vấn vector và sinh câu trả lời
+ * Thực thi RAG truy vấn vector và sinh câu trả lời với đo đạc chi tiết từng chặng
  */
 export async function executeRagQuery({ question, history = [], onChunk = null }) {
-  const startTime = Date.now();
-  let firstTokenTime = null;
+  const tTotalStart = performance.now();
 
-  // Bước 1: Viết lại câu hỏi nếu có ngữ cảnh lịch sử
-  const condensed = await condenseQuestion(question, history);
+  // CHẶNG 1: Viết lại câu hỏi (chỉ chạy khi có lịch sử, nếu không có history thì 0ms)
+  const tCondenseStart = performance.now();
+  let condensed = question;
+  let condenseMs = 0;
+  if (history && history.length > 0) {
+    condensed = await condenseQuestion(question, history);
+    condenseMs = Math.round(performance.now() - tCondenseStart);
+  }
 
-  // Bước 2: Tạo vector 768 chiều cho câu hỏi đã chuẩn hóa
+  // CHẶNG 2: Tạo vector 768 chiều cho câu hỏi
+  const tEmbedStart = performance.now();
   const embedModel = genAI.getGenerativeModel({ model: EMBED_MODEL });
   const embedRes = await embedModel.embedContent({
     content: { parts: [{ text: condensed }] },
     outputDimensionality: 768
   });
   const queryVector = embedRes.embedding.values;
+  const embedMs = Math.round(performance.now() - tEmbedStart);
 
-  // Bước 3: Tìm kiếm vector trên Supabase
+  // CHẶNG 3: Tìm kiếm vector trên Supabase
+  const tSearchStart = performance.now();
   const { data: matchedDocs, error: matchError } = await supabase.rpc('match_documents', {
     query_embedding: queryVector,
     match_count: 5,
@@ -94,6 +110,7 @@ export async function executeRagQuery({ question, history = [], onChunk = null }
   if (matchError) {
     throw new Error(`Lỗi truy vấn vector Supabase: ${matchError.message}`);
   }
+  const searchMs = Math.round(performance.now() - tSearchStart);
 
   const sources = [];
   const contextParts = (matchedDocs || []).map(doc => {
@@ -105,10 +122,16 @@ export async function executeRagQuery({ question, history = [], onChunk = null }
 
   const contextText = contextParts.join('\n\n---\n\n');
 
-  // Bước 4: Gọi Gemini sinh câu trả lời
+  // CHẶNG 4: Gọi Gemini sinh câu trả lời (tắt thinking để phản hồi tức thì)
+  const tGenStart = performance.now();
+  let firstTokenTime = null;
+
   const chatModel = genAI.getGenerativeModel({
     model: CHAT_MODEL,
-    systemInstruction: SYSTEM_PROMPT
+    systemInstruction: SYSTEM_PROMPT,
+    generationConfig: {
+      thinkingConfig: { thinkingBudget: 0 }
+    }
   });
 
   const promptContent = `TÀI LIỆU THAM KHẢO TỪ CSDL:\n${contextText}\n\nCÂU HỎI CỦA NGƯỜI DÂN:\n${question}\n(Câu hỏi ngữ cảnh đầy đủ: ${condensed})\n\nHãy trả lời người dân theo đúng quy định tại Bộ phận Một cửa:`;
@@ -119,7 +142,9 @@ export async function executeRagQuery({ question, history = [], onChunk = null }
     // Chế độ streaming
     const streamResult = await chatModel.generateContentStream(promptContent);
     for await (const chunk of streamResult.stream) {
-      if (!firstTokenTime) firstTokenTime = Date.now();
+      if (!firstTokenTime) {
+        firstTokenTime = performance.now();
+      }
       const chunkText = chunk.text();
       fullAnswer += chunkText;
       onChunk(chunkText);
@@ -127,19 +152,28 @@ export async function executeRagQuery({ question, history = [], onChunk = null }
   } else {
     // Chế độ hoàn tất một lần
     const res = await chatModel.generateContent(promptContent);
-    firstTokenTime = Date.now();
+    firstTokenTime = performance.now();
     fullAnswer = res.response.text();
   }
 
-  const endTime = Date.now();
-  const latencyMs = endTime - startTime;
-  const firstTokenMs = firstTokenTime ? firstTokenTime - startTime : latencyMs;
+  const tTotalEnd = performance.now();
+  const totalGenMs = Math.round(tTotalEnd - tGenStart);
+  const ttftMs = firstTokenTime ? Math.round(firstTokenTime - tGenStart) : totalGenMs;
+  const latencyMs = Math.round(tTotalEnd - tTotalStart);
 
   return {
     answer: fullAnswer.trim(),
     sources,
     condensedQuestion: condensed,
     latencyMs,
-    firstTokenMs
+    firstTokenMs: ttftMs,
+    breakdown: {
+      condenseMs,
+      embedMs,
+      searchMs,
+      ttftMs,
+      totalGenMs,
+      totalPipelineMs: latencyMs
+    }
   };
 }

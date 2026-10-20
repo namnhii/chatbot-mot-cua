@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- Outer red circular field -->
+  <circle cx="100" cy="100" r="95" fill="#DA251D" stroke="#FFCD00" stroke-width="4"/>
+  
+  <!-- Subtle inner ring -->
+  <circle cx="100" cy="100" r="90" fill="none" stroke="#FFCD00" stroke-width="1.5" stroke-dasharray="3,3"/>
+
+  <!-- Golden 5-pointed Star in center -->
+  <polygon points="100,38 109,66 138,66 115,84 123,112 100,95 77,112 85,84 62,66 91,66" fill="#FFFF00" stroke="#FFCD00" stroke-width="1"/>
+
+  <!-- Left Rice Stalk (Stylized golden ears of rice) -->
+  <path d="M 28,100 C 26,60 55,30 90,20 C 70,35 48,65 52,105 C 54,125 70,145 90,155 C 60,150 32,130 28,100 Z" fill="#FFD700" opacity="0.95"/>
+  <circle cx="36" cy="65" r="5" fill="#FFE066"/>
+  <circle cx="44" cy="50" r="5" fill="#FFE066"/>
+  <circle cx="56" cy="38" r="5" fill="#FFE066"/>
+  <circle cx="72" cy="28" r="5" fill="#FFE066"/>
+  <circle cx="34" cy="85" r="5.5" fill="#FFE066"/>
+  <circle cx="38" cy="105" r="5.5" fill="#FFE066"/>
+  <circle cx="48" cy="122" r="5" fill="#FFE066"/>
+
+  <!-- Right Rice Stalk (Stylized golden ears of rice) -->
+  <path d="M 172,100 C 174,60 145,30 110,20 C 130,35 152,65 148,105 C 146,125 130,145 110,155 C 140,150 168,130 172,100 Z" fill="#FFD700" opacity="0.95"/>
+  <circle cx="164" cy="65" r="5" fill="#FFE066"/>
+  <circle cx="156" cy="50" r="5" fill="#FFE066"/>
+  <circle cx="144" cy="38" r="5" fill="#FFE066"/>
+  <circle cx="128" cy="28" r="5" fill="#FFE066"/>
+  <circle cx="166" cy="85" r="5.5" fill="#FFE066"/>
+  <circle cx="162" cy="105" r="5.5" fill="#FFE066"/>
+  <circle cx="152" cy="122" r="5" fill="#FFE066"/>
+
+  <!-- Industrial Cog Wheel (Bánh răng công nghiệp màu vàng) -->
+  <g transform="translate(100, 155)">
+    <circle cx="0" cy="0" r="22" fill="#DA251D" stroke="#FFD700" stroke-width="4"/>
+    <circle cx="0" cy="0" r="10" fill="#FFD700"/>
+    <!-- Cog teeth -->
+    <rect x="-3" y="-26" width="6" height="6" fill="#FFD700"/>
+    <rect x="-3" y="20" width="6" height="6" fill="#FFD700"/>
+    <rect x="-26" y="-3" width="6" height="6" fill="#FFD700"/>
+    <rect x="20" y="-3" width="6" height="6" fill="#FFD700"/>
+    <rect x="-19" y="-19" width="6" height="6" fill="#FFD700" transform="rotate(45)"/>
+    <rect x="13" y="-19" width="6" height="6" fill="#FFD700" transform="rotate(45)"/>
+    <rect x="-19" y="13" width="6" height="6" fill="#FFD700" transform="rotate(45)"/>
+    <rect x="13" y="13" width="6" height="6" fill="#FFD700" transform="rotate(45)"/>
+  </g>
+
+  <!-- Red Ribbon at bottom -->
+  <path d="M 45,160 Q 100,185 155,160 Q 145,188 100,192 Q 55,188 45,160 Z" fill="#B31B1B" stroke="#FFD700" stroke-width="1.5"/>
+  <text x="100" y="180" font-family="Arial, sans-serif" font-size="8.5" font-weight="bold" fill="#FFE066" text-anchor="middle" letter-spacing="1.2">VIỆT NAM</text>
+</svg>
