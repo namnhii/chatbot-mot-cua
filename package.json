@@ -1,0 +1,37 @@
+{
+  "name": "chatbot-mot-cua",
+  "version": "1.0.0",
+  "description": "Chatbot tra cứu thủ tục hành chính tại Bộ phận Một cửa",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "ingest": "node scripts/ingest-data.mjs"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.0",
+    "@langchain/community": "^0.3.31",
+    "@langchain/core": "^0.3.40",
+    "@langchain/google-genai": "^0.1.8",
+    "@supabase/supabase-js": "^2.48.1",
+    "autoprefixer": "^10.4.20",
+    "clsx": "^2.1.1",
+    "dotenv": "^16.4.7",
+    "lucide-react": "^0.454.0",
+    "next": "14.2.16",
+    "pdf-parse": "^1.1.1",
+    "postcss": "^8.4.35",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tailwind-merge": "^2.2.1",
+    "tailwindcss": "^3.4.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.6",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "typescript": "^5.6.3"
+  }
+}
