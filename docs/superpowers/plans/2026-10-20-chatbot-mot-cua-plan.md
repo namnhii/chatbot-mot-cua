@@ -6,15 +6,18 @@
 
 **Architecture:** Kiến trúc RAG (Retrieval-Augmented Generation) 2 tầng: Tầng 1 sử dụng Gemini `text-embedding-004` lưu trữ và truy vấn vector trên Supabase pgvector; Tầng 2 sử dụng Gemini Chat Model (`gemini-2.5-flash` / `gemini-2.0-flash`) kết hợp tái cấu trúc câu hỏi theo ngữ cảnh (condense question) và sinh câu trả lời theo thứ tự các bước kèm trích dẫn nguồn, từ chối trả lời theo câu mẫu duy nhất khi không có thông tin. Frontend Next.js cung cấp giao diện Kiosk thân thiện với người dân mọi lứa tuổi.
 
-**Tech Stack:** Next.js (React), Tailwind CSS, LangChain (`@langchain/core`, `@langchain/google-genai`), Supabase (`@supabase/supabase-js`, `pgvector`), Google Gemini API (`gemini-2.5-flash`, `text-embedding-004`), Node.js 24 trên Windows (`npm.cmd`).
+**Tech Stack:** Next.js (React), Tailwind CSS, LangChain (`@langchain/core`, `@langchain/google-genai`), Supabase (`@supabase/supabase-js`, `pgvector`), Google Gemini API (Chat Model: `gemini-3.8-flash`, Embedding Model: `gemini-embedding-001` 768 chiều), Node.js 24 trên Windows (`npm.cmd`).
 
 **Spec:** `docs/superpowers/specs/2026-10-20-chatbot-mot-cua-design.md`
 
 ## Global Constraints
 
+- **Mô hình AI ghim cố định:**
+  - Chat Model chính thức: `gemini-3.8-flash`
+  - Embedding Model chính thức: `gemini-embedding-001` (ghim cố định 768 chiều qua `outputDimensionality: 768`), đảm bảo cả khâu nạp tài liệu (ingest) và khâu hỏi đáp (retrieval) đều dùng đồng nhất mô hình này.
 - **Câu mẫu từ chối duy nhất (Verbatim Refusal Copy):** Khi tài liệu không có thông tin, chatbot bắt buộc phải trả lời nguyên văn:
   `"Rất tiếc, trong tài liệu hướng dẫn hiện có chưa có thông tin về nội dung này. Bác/Anh/Chị vui lòng liên hệ trực tiếp cán bộ tại quầy hướng dẫn để được hỗ trợ cụ thể ạ."`
-- **Embedding Dimensions:** Google Gemini `text-embedding-004` sử dụng kích thước vector **768** chiều (khác với OpenAI `text-embedding-ada-002` dùng 1536 chiều). Bảng Supabase phải cấu hình cột `embedding vector(768)`.
+- **Embedding Dimensions:** Cấu hình bảng Supabase cột `embedding vector(768)`.
 - **Môi trường thực thi lệnh Windows:** Tất cả các lệnh npm/npx trên Windows PowerShell phải sử dụng `npm.cmd` và `npx.cmd` để tránh lỗi bảo mật Execution Policy của file `.ps1`.
 - **Kiểm soát Hạn mức Gemini API:** Quota tính theo API Key tại Google AI Studio (Free tier), không kế thừa tự động từ gói Gemini Pro tiêu dùng cá nhân; script kiểm tra phải thẩm định tính khả dụng và quota trước khi chạy ứng dụng.
 - **Xóa vector cũ khi nạp lại (Document Purge):** Khi nạp tài liệu qua `npm.cmd run ingest`, phải xóa các chunk cũ của file đó trong Supabase trước khi chèn mới để tránh xung đột dữ liệu cũ - mới.
