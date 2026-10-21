@@ -1,0 +1,92 @@
+[
+  {
+    "maTthc": "2.002913",
+    "tenTthc": "Liên thông điện tử: Đăng ký khai tử, xóa đăng ký thường trú, giải quyết mai táng phí, tử tuất",
+    "qrLink": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/01a03d95-035a-701a-af30-45899ccb145c",
+    "status": "SUCCESS",
+    "method": "PDF_DIRECT_DOWNLOAD",
+    "file": "TTHC_2.002913.pdf",
+    "sizeBytes": 95811
+  },
+  {
+    "maTthc": "3.000722",
+    "tenTthc": "Liên thông điện tử: đăng ký khai sinh, đăng ký thường trú, cấp thẻ bảo hiểm y tế, cấp thẻ căn cước cho trẻ em dưới 6 tuổi",
+    "qrLink": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019ff40e-c013-704a-be47-cee8794be2e2",
+    "status": "SUCCESS",
+    "method": "PDF_DIRECT_DOWNLOAD",
+    "file": "TTHC_3.000722.pdf",
+    "sizeBytes": 76447
+  },
+  {
+    "maTthc": "1.013225",
+    "tenTthc": "Cấp giấy phép xây dựng mới, có thời hạn đối với công trình cấp III, cấp IV và công trình nhà ở riêng lẻ của hộ gia đình, cá nhân   (công trình không theo tuyến/Theo tuyến trong đô thị/Tín ngưỡng, tôn giáo /Tượng đài, tranh hoành tráng/Theo giai đoạn cho công trình không theo tuyến/Theo giai đoạn cho công trình theo tuyến trong đô thị/Dự án) và nhà ở riêng lẻ.",
+    "qrLink": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bfe-9088-744d-aa0a-e846b6dce3d5",
+    "status": "SUCCESS",
+    "method": "PDF_DIRECT_DOWNLOAD",
+    "file": "TTHC_1.013225.pdf",
+    "sizeBytes": 124450
+  },
+  {
+    "maTthc": "2.000884",
+    "tenTthc": "Chứng thực chữ ký trong các giấy tờ, văn bản (áp dụng cho cả trường hợp chứng thực điểm chỉ và trường hợp người yêu cầu chứng thực không thể ký, không thể điểm chỉ được)",
+    "qrLink": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bfd-8e2e-7359-b42f-d5dc8d74741b",
+    "status": "SUCCESS",
+    "method": "PDF_DIRECT_DOWNLOAD",
+    "file": "TTHC_2.000884.pdf",
+    "sizeBytes": 76737
+  },
+  {
+    "maTthc": "2.000815",
+    "tenTthc": "Chứng thực bản sao từ bản chính giấy tờ, văn bản do cơ quan, tổ chức có thẩm quyền của Việt Nam; cơ quan, tổ chức có thẩm quyền của nước ngoài; cơ quan, tổ chức có thẩm quyền của Việt Nam liên kết với cơ quan, tổ chức có thẩm quyền của nước ngoài cấp hoặc chứng nhận",
+    "qrLink": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bfd-8e22-77ef-819f-e49460350904",
+    "status": "SUCCESS",
+    "method": "PDF_DIRECT_DOWNLOAD",
+    "file": "TTHC_2.000815.pdf",
+    "sizeBytes": 74551
+  },
+  {
+    "maTthc": "2.000635",
+    "tenTthc": "Cấp bản sao Trích lục hộ tịch, bản sao Giấy khai sinh",
+    "qrLink": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bfd-867c-72db-b6a7-dcbd8c763807",
+    "status": "SUCCESS",
+    "method": "CRAWL_AND_GENERATE_PDF",
+    "file": "TTHC_2.000635.pdf",
+    "sizeBytes": 541231
+  },
+  {
+    "maTthc": "1.004873",
+    "tenTthc": "Thủ tục cấp Giấy xác nhận tình trạng hôn nhân",
+    "qrLink": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bfd-6eb3-7019-bf3f-fc58c9ee44b9",
+    "status": "SUCCESS",
+    "method": "PDF_DIRECT_DOWNLOAD",
+    "file": "TTHC_1.004873.pdf",
+    "sizeBytes": 95793
+  },
+  {
+    "maTthc": "1.000894",
+    "tenTthc": "Thủ tục đăng ký kết hôn",
+    "qrLink": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bfd-3fac-7489-b53b-a15eb239a6fe",
+    "status": "SUCCESS",
+    "method": "PDF_DIRECT_DOWNLOAD",
+    "file": "TTHC_1.000894.pdf",
+    "sizeBytes": 91400
+  },
+  {
+    "maTthc": "1.001612",
+    "tenTthc": "Đăng ký thành lập hộ kinh doanh",
+    "qrLink": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bfb-d76d-737f-81b9-69258b07240b",
+    "status": "SUCCESS",
+    "method": "PDF_DIRECT_DOWNLOAD",
+    "file": "TTHC_1.001612.pdf",
+    "sizeBytes": 96503
+  },
+  {
+    "maTthc": "1.013978",
+    "tenTthc": "Đăng ký đất đai, tài sản gắn liền với đất, cấp Giấy chứng nhận quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất lần đầu đối với hộ gia đình, cá nhân, cộng đồng dân cư, người gốc Việt Nam định cư ở nước ngoài",
+    "qrLink": "https://dichvucong.gov.vn/thu-tuc-hanh-chinh/019d2bfa-8678-770b-8917-1872078767cd",
+    "status": "SUCCESS",
+    "method": "PDF_DIRECT_DOWNLOAD",
+    "file": "TTHC_1.013978.pdf",
+    "sizeBytes": 86188
+  }
+]
