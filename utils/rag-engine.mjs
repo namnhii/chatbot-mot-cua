@@ -14,8 +14,13 @@ if (supabaseUrl && supabaseUrl.endsWith('/')) supabaseUrl = supabaseUrl.slice(0,
 const supabase = createClient(supabaseUrl, supabaseKey);
 const genAI = new GoogleGenerativeAI(googleKey);
 
-// Hỗ trợ cấu hình model qua biến môi trường GEMINI_CHAT_MODEL, mặc định gemini-3.1-flash-lite cho tốc độ siêu tốc
-export const CHAT_MODEL = process.env.GEMINI_CHAT_MODEL || 'gemini-3.1-flash-lite';
+// Thứ tự ưu tiên model: gemini-3.5-flash-lite (chính thức, siêu tốc) -> gemini-3.1-flash-lite (dự phòng) -> gemini-3.8-flash (dự phòng tắt thinking)
+export const CHAT_MODELS_CANDIDATE = [
+  process.env.GEMINI_CHAT_MODEL || 'gemini-3.5-flash-lite',
+  'gemini-3.1-flash-lite',
+  'gemini-3.8-flash'
+];
+
 export const EMBED_MODEL = 'gemini-embedding-001';
 
 export const REFUSAL_COPY = 'Rất tiếc, trong tài liệu hướng dẫn hiện có chưa có thông tin về nội dung này. Bác/Anh/Chị vui lòng liên hệ trực tiếp cán bộ tại quầy hướng dẫn để được hỗ trợ cụ thể ạ.';
@@ -28,12 +33,19 @@ Khi hướng dẫn về một thủ tục, bạn hãy trình bày câu trả l�
 - Bước 2: Nơi nộp hồ sơ (bộ phận, cơ quan tiếp nhận).
 - Bước 3: Lệ phí (nếu có, hoặc ghi rõ miễn phí) và Thời hạn giải quyết, trả kết quả.
 
+QUY TẮC HIỆU NĂNG CHO KIOSK:
+Trả lời trực tiếp vào nội dung theo các bước, không chèn suy nghĩ ngầm (không dùng reasoning/thinking blocks) để tối ưu thời gian phản hồi cho công dân.
+
 QUY TẮC BẮT BUỘC VỀ TRÍCH DẪN NGUỒN:
 Ở cuối mỗi câu trả lời, bạn PHẢI ghi rõ trích dẫn tên văn bản nguồn và trang/điều căn cứ theo định dạng: [Nguồn: tên_file - Trang X].
 
-QUY TẮC BẮT BUỘC VỀ CHỐNG BỊA ĐẶT (ANTI-HALLUCINATION):
-Chỉ sử dụng thông tin có trong phần TÀI LIỆU THAM KHẢO được cung cấp dưới đây.
-Nếu thông tin người dân hỏi KHÔNG có trong tài liệu, bạn TUYỆT ĐỐI KHÔNG TỰ BỊA ĐẶT, không suy đoán ngoài đời, và PHẢI trả lời chính xác câu sau:
+QUY TẮC BẮT BUỘC VỀ TRẢ LỜI TỪNG PHẦN VÀ CHỐNG BỊA ĐẶT (ANTI-HALLUCINATION):
+1. Chỉ sử dụng thông tin có trong phần TÀI LIỆU THAM KHẢO được cung cấp dưới đây. TUYỆT ĐỐI KHÔNG TỰ BỊA ĐẶT, không suy đoán ngoài đời.
+2. NGUYÊN TẮC TRẢ LỜI TỪNG PHẦN (PARTIAL ANSWER):
+- Khi câu hỏi của người dân gồm nhiều ý (ví dụ: vừa hỏi lệ phí, vừa hỏi thời hạn hoặc hồ sơ): Ý nào có thông tin trong tài liệu thì PHẢI trả lời cụ thể, rõ ràng ý đó.
+- Ý nào trong tài liệu chưa có thông tin (ví dụ: văn bản chưa ghi mức lệ phí cụ thể): Bạn hãy nêu rõ "Về lệ phí: Hiện tài liệu chưa có thông tin cụ thể, Bác/Anh/Chị vui lòng hỏi cán bộ tại quầy để được hướng dẫn chi tiết".
+- CẤM TUYỆT ĐỐI việc từ chối toàn bộ câu hỏi khi trong tài liệu vẫn có thông tin trả lời được một phần (như đã có thời hạn giải quyết 24 giờ hoặc 3 ngày làm việc).
+3. Chỉ khi TOÀN BỘ câu hỏi của người dân HOÀN TOÀN KHÔNG CÓ THÔNG TIN trong tài liệu (ví dụ: hỏi thủ tục visa, hộ chiếu, xuất nhập cảnh...), bạn mới trả lời chính xác nguyên văn câu sau:
 "${REFUSAL_COPY}"`;
 
 /**
@@ -45,13 +57,6 @@ export async function condenseQuestion(question, history = []) {
     return question;
   }
 
-  const chatModel = genAI.getGenerativeModel({
-    model: CHAT_MODEL,
-    generationConfig: {
-      thinkingConfig: { thinkingBudget: 0 }
-    }
-  });
-
   const formattedHistory = history
     .map(msg => `${msg.role === 'user' ? 'Người dân' : 'Cán bộ Một cửa'}: ${msg.content}`)
     .join('\n');
@@ -61,17 +66,39 @@ ${formattedHistory}
 
 Người dân vừa hỏi tiếp câu sau: "${question}"
 
-Nhiệm vụ của bạn: Hãy viết lại câu hỏi tiếp theo này thành một câu hỏi độc lập, đầy đủ chủ ngữ và ngữ cảnh (nêu rõ tên thủ tục hành chính đang được nói tới) để có thể tra cứu chính xác trong tài liệu mà không cần xem lại lịch sử.
+Nhiệm vụ của bạn: Hãy viết lại câu hỏi tiếp theo này thành một câu hỏi độc lập, BẮT BUỘC PHẢI CHỨA RÕ TÊN THỦ TỤC HÀNH CHÍNH đang được nói tới (ví dụ: đăng ký khai sinh, đăng ký khai tử, kết hôn...) và giữ nguyên các ý người dân đang hỏi (như lệ phí, thời hạn, giấy tờ hồ sơ...).
 Quy tắc: Chỉ trả về duy nhất 1 câu hỏi hoàn chỉnh, không thêm bất kỳ lời dẫn hay giải thích nào khác.`;
 
-  try {
-    const res = await chatModel.generateContent(prompt);
-    const condensed = res.response.text().trim();
-    return condensed || question;
-  } catch (err) {
-    console.warn('Lỗi condense question, dùng câu hỏi gốc:', err.message);
-    return question;
+  for (const modelName of CHAT_MODELS_CANDIDATE) {
+    try {
+      const genConfig = { temperature: 0.1 };
+      if (modelName.includes('3.8')) {
+        genConfig.thinkingConfig = { thinkingBudget: 0 };
+      }
+      const chatModel = genAI.getGenerativeModel(
+        {
+          model: modelName,
+          generationConfig: genConfig
+        },
+        { timeout: 7000 }
+      );
+      const res = await chatModel.generateContent(prompt);
+      let condensed = res.response.text().trim();
+      if (condensed.includes('\n')) {
+        const lines = condensed.split('\n').map(l => l.trim()).filter(Boolean);
+        const questionLine = lines.find(l => l.includes('?') && (l.includes('"') || l.includes('**')));
+        if (questionLine) {
+          condensed = questionLine.replace(/[*"]/g, '').trim();
+        }
+      }
+      return condensed || question;
+    } catch (err) {
+      // nếu model lỗi hoặc timeout, thử model tiếp theo
+      continue;
+    }
   }
+
+  return question;
 }
 
 /**
@@ -99,11 +126,11 @@ export async function executeRagQuery({ question, history = [], onChunk = null }
   const queryVector = embedRes.embedding.values;
   const embedMs = Math.round(performance.now() - tEmbedStart);
 
-  // CHẶNG 3: Tìm kiếm vector trên Supabase
+  // CHẶNG 3: Tìm kiếm vector trên Supabase (top-k = 8)
   const tSearchStart = performance.now();
   const { data: matchedDocs, error: matchError } = await supabase.rpc('match_documents', {
     query_embedding: queryVector,
-    match_count: 5,
+    match_count: 8,
     filter: {}
   });
 
@@ -122,38 +149,55 @@ export async function executeRagQuery({ question, history = [], onChunk = null }
 
   const contextText = contextParts.join('\n\n---\n\n');
 
-  // CHẶNG 4: Gọi Gemini sinh câu trả lời (tắt thinking để phản hồi tức thì)
+  // CHẶNG 4: Gọi Gemini sinh câu trả lời (thử candidate models)
   const tGenStart = performance.now();
   let firstTokenTime = null;
-
-  const chatModel = genAI.getGenerativeModel({
-    model: CHAT_MODEL,
-    systemInstruction: SYSTEM_PROMPT,
-    generationConfig: {
-      thinkingConfig: { thinkingBudget: 0 }
-    }
-  });
+  let fullAnswer = '';
+  let usedModel = null;
 
   const promptContent = `TÀI LIỆU THAM KHẢO TỪ CSDL:\n${contextText}\n\nCÂU HỎI CỦA NGƯỜI DÂN:\n${question}\n(Câu hỏi ngữ cảnh đầy đủ: ${condensed})\n\nHãy trả lời người dân theo đúng quy định tại Bộ phận Một cửa:`;
 
-  let fullAnswer = '';
-
-  if (onChunk) {
-    // Chế độ streaming
-    const streamResult = await chatModel.generateContentStream(promptContent);
-    for await (const chunk of streamResult.stream) {
-      if (!firstTokenTime) {
-        firstTokenTime = performance.now();
+  for (const modelName of CHAT_MODELS_CANDIDATE) {
+    try {
+      const genConfig = { temperature: 0.2 };
+      if (modelName.includes('3.8')) {
+        genConfig.thinkingConfig = { thinkingBudget: 0 };
       }
-      const chunkText = chunk.text();
-      fullAnswer += chunkText;
-      onChunk(chunkText);
+      const chatModel = genAI.getGenerativeModel(
+        {
+          model: modelName,
+          systemInstruction: SYSTEM_PROMPT,
+          generationConfig: genConfig
+        },
+        { timeout: 8000 }
+      );
+
+      if (onChunk) {
+        const streamResult = await chatModel.generateContentStream(promptContent);
+        for await (const chunk of streamResult.stream) {
+          if (!firstTokenTime) {
+            firstTokenTime = performance.now();
+          }
+          const chunkText = chunk.text();
+          fullAnswer += chunkText;
+          onChunk(chunkText);
+        }
+      } else {
+        const res = await chatModel.generateContent(promptContent);
+        firstTokenTime = performance.now();
+        fullAnswer = res.response.text();
+      }
+
+      usedModel = modelName;
+      break;
+    } catch (err) {
+      console.warn(`Model ${modelName} lỗi hoặc quá hạn: ${err.message}. Thử model dự phòng...`);
+      continue;
     }
-  } else {
-    // Chế độ hoàn tất một lần
-    const res = await chatModel.generateContent(promptContent);
-    firstTokenTime = performance.now();
-    fullAnswer = res.response.text();
+  }
+
+  if (!usedModel) {
+    throw new Error('Không thể tạo phản hồi từ bất kỳ model Gemini nào.');
   }
 
   const tTotalEnd = performance.now();
@@ -165,6 +209,7 @@ export async function executeRagQuery({ question, history = [], onChunk = null }
     answer: fullAnswer.trim(),
     sources,
     condensedQuestion: condensed,
+    usedModel,
     latencyMs,
     firstTokenMs: ttftMs,
     breakdown: {

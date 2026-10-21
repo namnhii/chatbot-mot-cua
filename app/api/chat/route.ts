@@ -1,10 +1,29 @@
 import { NextResponse } from 'next/server';
 import { executeRagQuery } from '@/utils/rag-engine.mjs';
+import { checkRateLimit, getClientIp } from '@/utils/rate-limiter';
 
 export const runtime = 'nodejs';
 
 export async function POST(req: Request) {
   try {
+    // 1. Kiểm tra giới hạn tần suất theo IP (10 câu hỏi / phút trên 1 IP)
+    const clientIp = getClientIp(req);
+    const rateCheck = checkRateLimit(clientIp, 10, 60 * 1000);
+
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: rateCheck.errorMessage },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(rateCheck.resetSeconds),
+            'X-RateLimit-Limit': String(rateCheck.limit),
+            'X-RateLimit-Remaining': String(rateCheck.remaining),
+          },
+        }
+      );
+    }
+
     const { message, history } = await req.json();
 
     if (!message || typeof message !== 'string') {
@@ -47,6 +66,8 @@ export async function POST(req: Request) {
         'Content-Type': 'text/event-stream; charset=utf-8',
         'Cache-Control': 'no-cache, no-transform',
         'Connection': 'keep-alive',
+        'X-RateLimit-Limit': String(rateCheck.limit),
+        'X-RateLimit-Remaining': String(rateCheck.remaining),
       },
     });
   } catch (err: any) {
